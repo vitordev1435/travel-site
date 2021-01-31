@@ -7,11 +7,7 @@
   }
 
   &__text-content {
-<<<<<<< HEAD
-    padding-top: 60px;
-=======
     padding-top: 88px;
->>>>>>> our-features
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
