@@ -2,6 +2,7 @@ const currentTask = process.env.npm_lifecycle_event
 const path = require('path')
 const {CleanWebpackPlugin} = require('clean-webpack-plugin')
 const MiniCssExtractPlugin = require('mini-css-extract-plugin')
+const CssMinimizerPlugin = require('css-minimizer-webpack-plugin')
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const fse = require('fs-extra')
 
@@ -10,7 +11,11 @@ const postCSSPlugins = [
   require('postcss-mixins'),
   require('postcss-simple-vars'),
   require('postcss-nested'),
-  require('postcss-hexrgba'),
+  // If in the future the creator of the postcss-hexrgba package
+  // releases an update (it is version 2.0.1 as I'm writing this)
+  // then it will likely work with PostCSS V8 so you can uncomment
+  // the line below and also install the package with npm.
+  //require('postcss-hexrgba'),
   require('autoprefixer')
 ]
 
@@ -24,7 +29,7 @@ class RunAfterCompile {
 
 let cssConfig = {
   test: /\.css$/i,
-  use: ['css-loader?url=false', {loader: 'postcss-loader', options: {plugins: postCSSPlugins}}]
+  use: ['css-loader?url=false', {loader: 'postcss-loader', options: {postcssOptions: {plugins: postCSSPlugins}}}]
 }
 
 let pages = fse.readdirSync('./app').filter(function(file) {
@@ -77,7 +82,6 @@ if (currentTask == 'build') {
   })
 
   cssConfig.use.unshift(MiniCssExtractPlugin.loader)
-  postCSSPlugins.push(require('cssnano'))
   config.output = {
     filename: '[name].[chunkhash].js',
     chunkFilename: '[name].[chunkhash].js',
@@ -85,7 +89,9 @@ if (currentTask == 'build') {
   }
   config.mode = 'production'
   config.optimization = {
-    splitChunks: {chunks: 'all'}
+    splitChunks: {chunks: 'all'},
+    minimize: true,
+    minimizer: [`...`, new CssMinimizerPlugin()]
   }
   config.plugins.push(
     new CleanWebpackPlugin(),
